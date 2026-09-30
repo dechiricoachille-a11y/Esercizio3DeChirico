@@ -1,40 +1,44 @@
 package it.dechirico;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Scanner;
-
 
 public class ClientEcho {
 
-    public static void main (String[] args){
-    int porta = 5000;
-    String host = "local_host";
-    try(
-        ServerSocket s1b = new ServerSocket(porta)){
-        System.out.println("server trovato. Inserisci il messaggio");
+    public static void main(String[] args) {
+        int porta = 5000;
+        String host = "localhost"; 
 
-        Scanner scan = new Scanner (System.in);
+        System.out.println("Inserisci il messaggio da inviare al server:");
+        Scanner scan = new Scanner(System.in);
         String messaggioInviato = scan.nextLine();
 
-        try(Socket sock = new Socket(host, porta);
-            OutputStream newMessage = sock.getOutputStream() ){
+        try (Socket sock = new Socket(host, porta);
+             OutputStream newMessage = sock.getOutputStream();
+             InputStream responseMessage = sock.getInputStream()) {
 
-                newMessage.write(messaggioInviato.getBytes());
+            // Invio del messaggio
+            newMessage.write(messaggioInviato.getBytes());
+            newMessage.flush();
+            System.out.println("Messaggio inviato. In attesa di risposta...");
 
-                newMessage.flush();
+            //Ascolto risposta
+            byte[] buffer = new byte[1024];
+            int byteLetti = responseMessage.read(buffer);
+
+            if (byteLetti != -1) {
+                // Convertiamo i bytes
+                String messaggioRicevuto = new String(buffer, 0, byteLetti);
+                System.out.println("Risposta dal server: " + messaggioRicevuto);
+            } else {
+                System.out.println("errore server");
+            }
             
-        }catch (Exception e) {
-            // TODO: handle exception
+        } catch (IOException e) {
+            System.err.println("Errore di connessione");
         }
-
     }
-        catch (Exception e) {
-        // TODO: handle exception
-    }
-    
-}
 }
